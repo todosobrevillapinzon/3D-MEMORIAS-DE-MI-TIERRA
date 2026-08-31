@@ -11,7 +11,7 @@
             width: 100%; 
             height: 100%; 
             overflow: hidden; 
-            background-color: transparent; 
+            background: transparent !important; 
         }
         model-viewer { 
             width: 100%; 
@@ -25,14 +25,12 @@
     </model-viewer>
 
     <script>
-        // Este código lee automáticamente el modelo que se le pida por el enlace web
         const urlParams = new URLSearchParams(window.location.search);
         let modelo = urlParams.get('m');
         
         if (modelo) {
             document.getElementById('visor').setAttribute('src', modelo);
         } else {
-            // Modelo por defecto si no se especifica ninguno
             document.getElementById('visor').setAttribute('src', '1. La Serpiente del Nacimiento.glb');
         }
     </script>
