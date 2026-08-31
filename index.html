@@ -11,7 +11,7 @@
             width: 100%; 
             height: 100%; 
             overflow: hidden; 
-            background: transparent !important; 
+            background: transparent; 
         }
         model-viewer { 
             width: 100%; 
@@ -21,7 +21,7 @@
     </style>
 </head>
 <body>
-    <model-viewer id="visor" ar ar-modes="webxr scene-viewer quick-look" camera-controls auto-rotate alt="Modelo 3D interactivo">
+    <model-viewer id="visor" ar ar-modes="webxr scene-viewer quick-look" camera-controls auto-rotate environment-image="neutral" shadow-intensity="1" alt="Modelo 3D interactivo">
     </model-viewer>
 
     <script>
