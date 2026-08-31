@@ -2,24 +2,39 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>AR - Memorias de mi Tierra</title>
-    <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realidad Aumentada - Memorias de mi Tierra</title>
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <style>
+        body, html { 
+            margin: 0; 
+            width: 100%; 
+            height: 100%; 
+            overflow: hidden; 
+            background: transparent !important; 
+        }
+        model-viewer { 
+            width: 100%; 
+            height: 100%; 
+            background-color: transparent !important;
+        }
+    </style>
 </head>
-<body style="margin: 0; overflow: hidden;">
-    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;">
-        
-        <a-marker preset="hiro">
-            <a-entity 
-                gltf-model="1. La Serpiente del Nacimiento.glb" 
-                scale="0.5 0.5 0.5" 
-                position="0 0 0" 
-                rotation="0 0 0">
-            </a-entity>
-        </a-marker>
+<body style="background: transparent !important;">
+    <model-viewer id="visor" ar ar-modes="webxr scene-viewer quick-look" camera-controls auto-rotate skybox-image="" shadow-intensity="1" alt="Modelo 3D interactivo">
+    </model-viewer>
 
-        <a-entity camera></a-entity>
-    </a-scene>
+    <script>
+        // Lee el número o nombre del modelo que viene en el enlace (ejemplo: ?m=1.glb)
+        const urlParams = new URLSearchParams(window.location.search);
+        let modelo = urlParams.get('m');
+        
+        if (modelo) {
+            document.getElementById('visor').setAttribute('src', modelo);
+        } else {
+            // Modelo por defecto si entran sin especificar ninguno
+            document.getElementById('visor').setAttribute('src', '1. La Serpiente del Nacimiento.glb');
+        }
+    </script>
 </body>
 </html>
