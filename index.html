@@ -3,69 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Realidad Virtual - Memorias de mi Tierra</title>
+    <title>Memorias de mi Tierra - Visor 3D/AR/VR</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <style>
-        body, html { margin: 0; width: 100%; height: 100%; overflow: hidden; }
+        body, html { margin: 0; width: 100%; height: 100%; overflow: hidden; font-family: sans-serif; }
         #cargando {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #111; color: #eee; display: flex; align-items: center;
-            justify-content: center; font-family: sans-serif; z-index: 10;
+            justify-content: center; z-index: 20;
+        }
+        #banner {
+            position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.65); color: #fff; padding: 8px 16px;
+            border-radius: 20px; font-size: 13px; z-index: 15; text-align: center;
+            max-width: 85%; display: none;
         }
     </style>
 </head>
 <body>
     <div id="cargando">Cargando modelo 3D...</div>
+    <div id="banner"></div>
 
-    <a-scene vr-mode-ui="enabled: true" loading-screen="enabled: false">
+    <a-scene vr-mode-ui="enabled: true" loading-screen="enabled: false"
+              renderer="colorManagement: true; physicallyCorrectLights: true">
 
         <a-assets timeout="30000">
             <a-asset-item id="modelo-glb" src=""></a-asset-item>
         </a-assets>
 
-        <!-- Fondo/entorno en vez del blanco por defecto -->
         <a-sky color="#1a1a2e"></a-sky>
         <a-light type="ambient" color="#ffffff" intensity="0.9"></a-light>
         <a-light type="directional" position="1 3 2" intensity="0.6"></a-light>
-
-        <a-entity id="modelo-3d" gltf-model="#modelo-glb" position="0 1.4 -2.5" scale="1 1 1"></a-entity>
-
-        <a-entity camera look-controls wasd-controls position="0 1.6 0">
-            <a-entity cursor="fuse: false" position="0 0 -1"
-                geometry="primitive: ring; radiusInner: 0.008; radiusOuter: 0.012"
-                material="color: white; shader: flat"></a-entity>
-        </a-entity>
-
         <a-entity light="type: hemisphere; color: #fff; groundColor: #444; intensity: 0.5"></a-entity>
+
+        <a-entity id="modelo-3d" gltf-model="#modelo-glb" position="0 1.4 -2.5"></a-entity>
+
+        <a-entity id="rig" position="0 1.6 0">
+            <a-entity camera look-controls wasd-controls>
+                <a-entity cursor="fuse: false" position="0 0 -1"
+                    geometry="primitive: ring; radiusInner: 0.008; radiusOuter: 0.012"
+                    material="color: white; shader: flat"></a-entity>
+            </a-entity>
+        </a-entity>
     </a-scene>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        let modelo = urlParams.get('m') || '1-la-serpiente-del-nacimiento-optimized.glb';
-
+        const modelo = urlParams.get('m') || '1-la-serpiente-del-nacimiento-optimized.glb';
         const urlAbsoluta = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelo}`;
 
         const asset = document.getElementById('modelo-glb');
         const entidad = document.getElementById('modelo-3d');
         const cargando = document.getElementById('cargando');
+        const banner = document.getElementById('banner');
 
         asset.setAttribute('src', urlAbsoluta);
 
         entidad.addEventListener('model-loaded', () => {
             cargando.style.display = 'none';
 
-            // Auto-centrar y escalar el modelo según su tamaño real,
-            // porque tus 75 GLB probablemente no tienen todos la misma escala
+            // Auto-centrar y escalar (tus 75 GLB no necesariamente comparten escala)
             const mesh = entidad.getObject3D('mesh');
             if (mesh) {
                 const box = new THREE.Box3().setFromObject(mesh);
                 const size = new THREE.Vector3();
                 box.getSize(size);
-                const maxDim = Math.max(size.x, size.y, size.z);
-                const escalaObjetivo = 1.2; // metros aprox. de "altura" deseada en VR
-                const factor = escalaObjetivo / maxDim;
+                const maxDim = Math.max(size.x, size.y, size.z) || 1;
+                const factor = 1.2 / maxDim;
                 entidad.setAttribute('scale', `${factor} ${factor} ${factor}`);
-
                 const center = new THREE.Vector3();
                 box.getCenter(center);
                 entidad.object3D.position.x -= center.x * factor;
@@ -78,6 +83,29 @@
             cargando.textContent = 'Error cargando el modelo: ' + modelo;
             console.error(e.detail);
         });
+
+        // Detección de capacidades reales del navegador (sin apps)
+        async function detectarYAvisar() {
+            if (!navigator.xr) {
+                banner.textContent = 'Tu navegador no soporta AR/VR. Puedes rotar el modelo arrastrando con el dedo.';
+                banner.style.display = 'block';
+                return;
+            }
+            const [ar, vr] = await Promise.all([
+                navigator.xr.isSessionSupported('immersive-ar').catch(() => false),
+                navigator.xr.isSessionSupported('immersive-vr').catch(() => false)
+            ]);
+            if (ar) {
+                banner.textContent = 'Toca "Entrar en AR" para verlo en tu espacio real.';
+            } else if (vr) {
+                banner.textContent = 'Toca "Entrar en VR" para verlo con tu visor.';
+            } else {
+                banner.textContent = 'Tu navegador no soporta AR/VR. Puedes rotar el modelo arrastrando con el dedo.';
+            }
+            banner.style.display = 'block';
+            setTimeout(() => banner.style.display = 'none', 6000);
+        }
+        detectarYAvisar();
     </script>
 </body>
 </html>
