@@ -37,16 +37,16 @@
     <div id="viewer-container"></div>
 
     <script>
-        // Leer el parámetro ?m= del enlace (ej: ?m=1-la-serpiente...)
+        // Leer el parámetro ?m= del enlace (ej: ?m=la-serpiente.glb)
         const urlParams = new URLSearchParams(window.location.search);
         const modelName = urlParams.get('m');
         const container = document.getElementById('viewer-container');
 
         if (modelName) {
-            // Construir la URL absoluta del archivo .glb en GitHub Pages
-            const modelUrl = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelName}`;
+            // Usar ruta relativa limpia para que cargue directamente desde el repositorio
+            const modelUrl = modelName;
 
-            // Inyectar el model-viewer optimizado solo para visualización 3D web estable
+            // Inyectar el model-viewer optimizado para carga web estable
             container.innerHTML = `
                 <model-viewer 
                     src="${modelUrl}" 
