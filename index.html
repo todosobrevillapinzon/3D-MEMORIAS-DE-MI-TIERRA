@@ -30,39 +30,48 @@
             margin-top: 20px;
             display: inline-block;
         }
-        p { color: #aaa; max-width: 300px; font-size: 14px; }
+        p { color: #aaa; max-width: 320px; font-size: 14px; }
+        .debug { font-size: 11px; color: #ff6b6b; margin-top: 15px; word-break: break-all; }
     </style>
 </head>
 <body>
 
     <h2>Memorias de mi Tierra</h2>
-    <p>Visualiza el elemento histórico en tu espacio real a través de la cámara.</p>
+    <p>Visualiza el elemento histórico en tu espacio real.</p>
 
     <div id="contenedor-ar"></div>
+    <div id="debug-url" class="debug"></div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         let modelo = urlParams.get('m');
         const contenedor = document.getElementById('contenedor-ar');
+        const debugDiv = document.getElementById('debug-url');
 
         if (modelo) {
-            // Limpiar el nombre por si por error incluye la extensión en el QR
+            // Limpia por si el QR incluyó alguna extensión previa
             modelo = modelo.replace(/\.(glb|usdz)$/i, '');
+
+            // CAMBIA ESTO SI EL NOMBRE DE TU REPOSITORIO EN GITHUB ES DIFERENTE DE "3D-MEMORIAS-DE-MI-TIERRA"
+            const repoNombre = "3D-MEMORIAS-DE-MI-TIERRA"; 
+            const usuarioGithub = "todosobrevillapinzon";
+
+            const urlGlb = `https://${usuarioGithub}.github.io/${repoNombre}/${modelo}.glb`;
+
+            debugDiv.textContent = "Buscando archivo: " + urlGlb;
 
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
             if (isIOS) {
-                // Opción segura para iOS: usa visor web nativo de respaldo si no hay .usdz físico todavía
-                const urlGlb = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelo}.glb`;
+                // En iOS abrimos el archivo .glb directo (Safari lo descargará o abrirá según permisos, pero sin 404)
                 contenedor.innerHTML = `<a href="${urlGlb}" class="btn">Abrir Modelo 3D</a>`;
             } else {
-                // Android nativo con Scene Viewer de Google
-                const urlGlb = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelo}.glb`;
+                // En Android lanzamos el visor de Google
                 const urlSceneViewer = `https://arvr.google.com/scene-viewer/1.0?file=${encodeURIComponent(urlGlb)}&mode=ar_only`;
                 contenedor.innerHTML = `<a href="${urlSceneViewer}" class="btn">Abrir Cámara AR</a>`;
             }
         } else {
-            contenedor.innerHTML = "<p style='color:#ff6b6b;'>Código QR incompleto.</p>";
+            contenedor.innerHTML = "<p style='color:#ff6b6b;'>Falta el parámetro ?m= en el enlace del QR.</p>";
         }
     </script>
 
