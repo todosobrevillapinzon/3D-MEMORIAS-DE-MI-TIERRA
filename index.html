@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Memorias de mi Tierra</title>
-    <!-- Forzamos una versión limpia del visor 3D para evitar caché -->
     <script type="module" src="https://unpkg.com/@google/model-viewer@3.4.0/dist/model-viewer.min.js"></script>
     <style>
         body, html {
@@ -21,11 +20,16 @@
             background: #111; text-align: center; padding: 20px; box-sizing: border-box;
         }
         .btn {
-            background: #28a745; color: white; padding: 18px 32px;
-            border-radius: 14px; text-decoration: none; font-size: 18px;
+            background: #28a745; color: white; padding: 16px 28px;
+            border-radius: 14px; text-decoration: none; font-size: 16px;
             font-weight: bold; border: none; cursor: pointer;
             box-shadow: 0 4px 15px rgba(40,167,69,0.4);
-            display: inline-block; margin-top: 20px;
+            display: inline-block; margin-top: 15px;
+        }
+        .btn-secundario {
+            background: #333; color: #ccc; padding: 12px 24px;
+            border-radius: 12px; text-decoration: none; font-size: 14px;
+            border: 1px solid #55s; cursor: pointer; display: inline-block; margin-top: 10px;
         }
         p { color: #aaa; max-width: 320px; font-size: 14px; }
     </style>
@@ -45,39 +49,49 @@
             modelo = modelo.toLowerCase().trim().replace(/\.(glb|usdz)$/i, '');
 
             const modelUrl = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelo}.glb`;
+            const usdzUrl = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelo}.usdz`;
 
-            // Creamos el visor nativo directamente
-            const viewer = document.createElement('model-viewer');
-            viewer.setAttribute('src', modelUrl);
-            viewer.setAttribute('ar', '');
-            viewer.setAttribute('ar-modes', 'scene-viewer webxr quick-look');
-            viewer.setAttribute('camera-controls', '');
-            viewer.setAttribute('auto-rotate', '');
-            viewer.setAttribute('shadow-intensity', '1');
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
-            // Creamos nuestro propio botón personalizado y limpio
-            const arBtn = document.createElement('button');
-            arBtn.className = 'btn';
-            arBtn.textContent = 'Abrir en Realidad Aumentada';
-            
-            // Forzamos la acción de AR al hacer clic en nuestro botón
-            arBtn.addEventListener('click', () => {
-                if (viewer.canActivateAR) {
-                    viewer.activateAR();
-                } else {
-                    window.location.href = modelUrl;
-                }
-            });
+            if (isIOS) {
+                // iOS abre su visor nativo con el archivo USDZ
+                document.getElementById('ui').innerHTML = `
+                    <h2>Memorias de mi Tierra</h2>
+                    <p>Visualiza el elemento histórico en tu espacio real.</p>
+                    <a href="${usdzUrl}" rel="ar" class="btn">Abrir Cámara AR</a>
+                `;
+            } else {
+                // ANDROID Y OTROS: Creamos la interfaz con doble opción por si el celular no tiene ARCore
+                const uiBox = document.getElementById('ui');
+                uiBox.innerHTML = `
+                    <h2>Memorias de mi Tierra</h2>
+                    <p>Visualiza el modelo histórico en 3D o en tu espacio real.</p>
+                    <button id="ar-btn" class="btn">Abrir Cámara AR</button>
+                    <br>
+                    <a href="${modelUrl}" class="btn-secundario">Ver en Pantalla 3D (Sin AR)</a>
+                `;
+                uiBox.style.pointerEvents = 'auto';
 
-            const uiBox = document.getElementById('ui');
-            uiBox.innerHTML = `
-                <h2>Memorias de mi Tierra</h2>
-                <p>Visualiza el elemento histórico en tu espacio real.</p>
-            `;
-            uiBox.appendChild(arBtn);
-            uiBox.style.pointerEvents = 'auto';
+                const viewer = document.createElement('model-viewer');
+                viewer.setAttribute('src', modelUrl);
+                viewer.setAttribute('ar', '');
+                viewer.setAttribute('ar-modes', 'scene-viewer webxr quick-look');
+                viewer.setAttribute('camera-controls', '');
+                viewer.setAttribute('auto-rotate', '');
+                document.body.appendChild(viewer);
 
-            document.body.appendChild(viewer);
+                document.getElementById('ar-btn').addEventListener('click', () => {
+                    if (viewer.canActivateAR) {
+                        viewer.activateAR();
+                    } else {
+                        alert("Tu dispositivo no soporta Realidad Aumentada nativa, pero puedes usar el botón de 'Ver en Pantalla 3D'.");
+                    }
+                });
+
+                viewer.addEventListener('load', () => {
+                    document.getElementById('ui').style.display = 'none';
+                });
+            }
 
         } else {
             document.getElementById('msg').textContent = "Falta el parámetro ?m= en el código QR.";
