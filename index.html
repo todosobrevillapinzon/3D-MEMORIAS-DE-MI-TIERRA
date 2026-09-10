@@ -3,59 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cámara AR - Memorias de mi Tierra</title>
+    <title>Memorias de mi Tierra</title>
     <style>
         body {
             margin: 0;
             height: 100vh;
-            background: #000;
+            background: #111;
             color: #fff;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: system-ui, -apple-system, sans-serif;
             text-align: center;
             padding: 20px;
         }
-        a {
-            background: #007aff;
+        .btn {
+            background: #28a745;
             color: white;
             padding: 18px 32px;
             border-radius: 14px;
             text-decoration: none;
             font-size: 18px;
             font-weight: bold;
-            box-shadow: 0 4px 15px rgba(0,122,255,0.4);
+            box-shadow: 0 4px 15px rgba(40,167,69,0.4);
             margin-top: 20px;
+            display: inline-block;
         }
+        p { color: #aaa; max-width: 300px; font-size: 14px; }
     </style>
 </head>
 <body>
 
     <h2>Memorias de mi Tierra</h2>
-    <p>Toca el botón para activar el visor de la cámara:</p>
+    <p>Visualiza el elemento histórico en tu espacio real a través de la cámara.</p>
 
-    <div id="btn-container"></div>
+    <div id="contenedor-ar"></div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        const modelo = urlParams.get('m') || 'la-serpiente';
-        
-        // AQUÍ ESTÁ EL SECRETO: 
-        // Para iOS, el archivo DEBE ser obligatoriamente .usdz para que abra la cámara directamente.
-        // Si mantienes .glb en el iPhone, Safari siempre intentará descargarlo o se bloqueará.
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-        const container = document.getElementById('btn-container');
+        const modelo = urlParams.get('m');
+        const contenedor = document.getElementById('contenedor-ar');
 
-        if (isIOS) {
-            // Enlace directo nativo de Apple Quick Look
-            const urlUsdz = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelo}.usdz`;
-            container.innerHTML = `<a href="${urlUsdz}" rel="ar">Abrir Cámara AR</a>`;
+        if (modelo) {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+            if (isIOS) {
+                // Enlace nativo para Apple (requiere el archivo .usdz en tu repo)
+                const urlUsdz = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelo}.usdz`;
+                contenedor.innerHTML = `<a href="${urlUsdz}" rel="ar" class="btn">Abrir Cámara AR</a>`;
+            } else {
+                // Enlace nativo universal para Android (usa el visor de Google integrado en el sistema)
+                const urlGlb = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelo}.glb`;
+                const urlSceneViewer = `https://arvr.google.com/scene-viewer/1.0?file=${encodeURIComponent(urlGlb)}&mode=ar_only`;
+                contenedor.innerHTML = `<a href="${urlSceneViewer}" class="btn">Abrir Cámara AR</a>`;
+            }
         } else {
-            // Enlace para Android usando el visor de Google
-            const urlGlb = `https://todosobrevillapinzon.github.io/3D-MEMORias-DE-MI-TIERRA/${modelo}.glb`;
-            container.innerHTML = `<a href="https://arvr.google.com/scene-viewer/1.0?file=${encodeURIComponent(urlGlb)}">Abrir Cámara AR</a>`;
+            contenedor.innerHTML = "<p style='color:#ff6b6b;'>Código QR incompleto.</p>";
         }
     </script>
 
