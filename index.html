@@ -13,7 +13,7 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background-color: #f0f0f0;
+            background-color: #eeeeee;
             font-family: Arial, sans-serif;
         }
         model-viewer {
@@ -46,16 +46,13 @@
             // Construir la URL absoluta del archivo .glb en GitHub Pages
             const modelUrl = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelName}`;
 
-            // Inyectar el model-viewer optimizado para evitar pantallas blancas
+            // Inyectar el model-viewer optimizado solo para visualización 3D web estable
             container.innerHTML = `
                 <model-viewer 
                     src="${modelUrl}" 
-                    ios-src="${modelUrl}" 
                     alt="Modelo 3D de Memorias de mi Tierra" 
                     auto-rotate 
                     camera-controls 
-                    ar
-                    ar-modes="webxr scene-viewer quick-look"
                     loading="eager"
                     reveal="auto">
                 </model-viewer>
