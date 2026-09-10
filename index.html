@@ -2,151 +2,76 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>AR - Memorias de mi Tierra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memorias de mi Tierra - AR</title>
+    <!-- Importar la librería oficial de Google para manejo de modelos y AR -->
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
     <style>
         body, html {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
-            overflow: hidden;
-            background-color: #000;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
-        /* Estilo de la pantalla de carga */
-        #loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #111;
-            color: white;
+            background-color: #111;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 100;
-        }
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        /* Botón para reintentar si falla el lanzamiento automático */
-        #ar-button {
-            display: none;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            padding: 15px 30px;
-            font-size: 18px;
-            background-color: #007aff;
+            font-family: Arial, sans-serif;
             color: white;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            text-align: center;
         }
-        #ar-button:active {
-            background-color: #005bb5;
+        .container {
+            padding: 20px;
+        }
+        /* Estilo limpio para el visor que activa la cámara */
+        model-viewer {
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
         }
     </style>
-
-    <!-- Importar la librería model-viewer que soporta AR nativo -->
-    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 </head>
 <body>
 
-    <!-- Pantalla de carga visual -->
-    <div id="loading-overlay">
-        <div class="spinner"></div>
-        <p>Preparando Realidad Aumentada...</p>
-        <p style="font-size: 12px; color: #888;">(Si usas iPhone, abrirá la cámara)</p>
+    <div class="container" id="mensaje">
+        <p>Abriendo la cámara...</p>
     </div>
 
-    <!-- Botón de respaldo por si el navegador bloquea el inicio automático -->
-    <button id="ar-button" onclick="activarAR()">Tocar para ver en Realidad Aumentada</button>
-
-    <!-- Elemento model-viewer oculto pero activo -->
-    <!-- IMPORTANTE: La ruta src debe apuntar a tu archivo .glb optimizado -->
-    <model-viewer 
-        id="ar-model"
-        src=""
-        ar
-        ar-modes="quick-look webxr"
-        camera-controls
-        style="width: 1px; height: 1px; opacity: 0; border: none;">
-    </model-viewer>
-
     <script>
+        // Leer el parámetro ?m= del QR (ej: ?m=la-serpiente.glb)
         const urlParams = new URLSearchParams(window.location.search);
-        // Nombre del modelo por defecto si no hay parámetro (cámbialo si quieres)
-        const modeloDefault = '1-la-serpiente-del-nacimiento-optimized.glb'; 
-        const modeloParam = urlParams.get('m');
-        const modeloNombre = modeloParam ? modeloParam : modeloDefault;
-        
-        // Construye la URL absoluta. Asegúrate de que esta ruta sea correcta.
-        const modelUrl = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modeloNombre}`;
+        const modelo = urlParams.get('m');
 
-        const modelViewer = document.getElementById('ar-model');
-        const loadingOverlay = document.getElementById('loading-overlay');
-        const arButton = document.getElementById('ar-button');
+        if (modelo) {
+            // URL absoluta del archivo en tu repositorio de GitHub Pages
+            const modelUrl = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelo}`;
 
-        // Asignar la URL del modelo al visor
-        modelViewer.setAttribute('src', modelUrl);
+            // Crear el elemento model-viewer dinámicamente optimizado solo para AR
+            const viewer = document.createElement('model-viewer');
+            viewer.setAttribute('src', modelUrl);
+            viewer.setAttribute('ios-src', modelUrl); // Clave para que el iPhone abra la cámara nativa
+            viewer.setAttribute('ar', '');
+            viewer.setAttribute('ar-modes', 'quick-look webxr scene-viewer');
+            viewer.setAttribute('camera-controls', '');
+            
+            document.body.appendChild(viewer);
 
-        function activarAR() {
-            // Forzar la activación del modo AR en el elemento model-viewer
-            const arProxy = modelViewer.activateAR();
-            if (arProxy) {
-                arProxy.catch((err) => {
-                    console.error("Error al activar AR:", err);
-                    // Si falla, ocultamos la carga y mostramos el botón manual
-                    loadingOverlay.style.display = 'none';
-                    arButton.style.display = 'block';
-                    alert("No se pudo iniciar la cámara automáticamente. Por favor, toca el botón.");
-                });
-            } else {
-                // Fallback si el navegador no soporta activarAR
-                loadingOverlay.style.display = 'none';
-                alert("Tu dispositivo no parece soportar Realidad Aumentada.");
-            }
+            // Intentar abrir la cámara automáticamente apenas cargue
+            viewer.addEventListener('load', () => {
+                document.getElementById('mensaje').style.display = 'none';
+                try {
+                    viewer.activateAR();
+                } catch (e) {
+                    console.log("Activación manual requerida");
+                }
+            });
+
+        } else {
+            document.getElementById('mensaje').innerHTML = "<h3>Error: No se indicó ningún modelo en el enlace.</h3>";
         }
-
-        // Intentar lanzar la RA automáticamente cuando el modelo esté listo
-        modelViewer.addEventListener('load', () => {
-            console.log("Modelo cargado. Intentando iniciar AR...");
-            
-            // Ocultar pantalla de carga
-            loadingOverlay.style.display = 'none';
-
-            // En iPhone/Safari, el lanzamiento automático funciona bien si el usuario escaneó un QR
-            // En Android/Chrome, el lanzamiento automático suele ser bloqueado por seguridad
-            
-            setTimeout(() => {
-                // Pequeña demora para asegurar que el navegador está listo
-                activarAR();
-            }, 500);
-        });
-
-        // Manejar errores de carga del modelo
-        modelViewer.addEventListener('error', (event) => {
-            console.error("Error en model-viewer:", event);
-            loadingOverlay.style.display = 'none';
-            alert("Error crítico: No se pudo cargar el modelo 3D. Revisa la consola.");
-        });
-
     </script>
+
 </body>
 </html>
