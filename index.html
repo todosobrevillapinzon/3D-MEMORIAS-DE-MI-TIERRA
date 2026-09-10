@@ -42,18 +42,21 @@
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        const modelo = urlParams.get('m');
+        let modelo = urlParams.get('m');
         const contenedor = document.getElementById('contenedor-ar');
 
         if (modelo) {
+            // Limpiar el nombre por si por error incluye la extensión en el QR
+            modelo = modelo.replace(/\.(glb|usdz)$/i, '');
+
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
             if (isIOS) {
-                // Enlace nativo para Apple (requiere el archivo .usdz en tu repo)
-                const urlUsdz = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelo}.usdz`;
-                contenedor.innerHTML = `<a href="${urlUsdz}" rel="ar" class="btn">Abrir Cámara AR</a>`;
+                // Opción segura para iOS: usa visor web nativo de respaldo si no hay .usdz físico todavía
+                const urlGlb = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelo}.glb`;
+                contenedor.innerHTML = `<a href="${urlGlb}" class="btn">Abrir Modelo 3D</a>`;
             } else {
-                // Enlace nativo universal para Android (usa el visor de Google integrado en el sistema)
+                // Android nativo con Scene Viewer de Google
                 const urlGlb = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelo}.glb`;
                 const urlSceneViewer = `https://arvr.google.com/scene-viewer/1.0?file=${encodeURIComponent(urlGlb)}&mode=ar_only`;
                 contenedor.innerHTML = `<a href="${urlSceneViewer}" class="btn">Abrir Cámara AR</a>`;
