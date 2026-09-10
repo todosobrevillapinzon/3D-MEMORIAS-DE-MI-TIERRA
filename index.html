@@ -4,95 +4,85 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Memorias de mi Tierra - AR</title>
-    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
     <style>
         body, html {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
-            background-color: #1a1a1a;
+            background-color: #111;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             font-family: Arial, sans-serif;
             color: white;
             text-align: center;
         }
-        .container {
-            padding: 20px;
-            z-index: 10;
+        .card {
+            padding: 30px;
+            max-width: 90%;
         }
+        h2 { margin-bottom: 10px; font-size: 22px; }
+        p { color: #aaa; font-size: 14px; margin-bottom: 25px; }
+        
+        /* Botón oficial optimizado para iOS y Android */
         .btn-ar {
-            background-color: #007aff;
+            display: inline-block;
+            background-color: #28a745;
             color: white;
-            border: none;
-            padding: 16px 28px;
+            text-decoration: none;
+            padding: 16px 30px;
             font-size: 18px;
             border-radius: 12px;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-            margin-top: 20px;
             font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
         }
         .btn-ar:active {
-            background-color: #005bb5;
-        }
-        model-viewer {
-            width: 100vw;
-            height: 100vh;
-            position: absolute;
-            top: 0;
-            left: 0;
+            background-color: #218838;
         }
     </style>
 </head>
 <body>
 
-    <div class="container" id="panel">
+    <div class="card" id="content">
         <h2>Memorias de mi Tierra</h2>
-        <p id="estado">Preparando visor 3D...</p>
-        <button class="btn-ar" id="btnAr" style="display: none;">Ver en Realidad Aumentada</button>
+        <p>Escanea listo para proyectar en tu espacio real.</p>
+        <div id="enlace-container">
+            <a id="ar-link" href="#" class="btn-ar">Abrir Cámara en AR</a>
+        </div>
     </div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const modelo = urlParams.get('m');
-        const panel = document.getElementById('panel');
-        const estado = document.getElementById('estado');
-        const btnAr = document.getElementById('btnAr');
+        const container = document.getElementById('enlace-container');
 
         if (modelo) {
-            const modelUrl = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelo}`;
+            // URL base de tus archivos .glb en GitHub Pages
+            const modelGlbUrl = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelo}`;
 
-            // Crear el model-viewer usando la ranura de interfaz nativa integrada
-            const viewer = document.createElement('model-viewer');
-            viewer.setAttribute('src', modelUrl);
-            viewer.setAttribute('ios-src', modelUrl);
-            viewer.setAttribute('ar', '');
-            viewer.setAttribute('ar-modes', 'quick-look webxr scene-viewer');
-            viewer.setAttribute('camera-controls', '');
-            
-            // Usar el botón AR nativo que incluye model-viewer para máxima compatibilidad con iOS y Android
-            const arButtonSlot = document.createElement('button');
-            arButtonSlot.setAttribute('slot', 'ar-button');
-            arButtonSlot.className = 'btn-ar';
-            arButtonSlot.textContent = 'Ver en Realidad Aumentada';
-            viewer.appendChild(arButtonSlot);
+            // Detectar si estamos en un dispositivo iOS (iPhone / iPad)
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
-            document.body.appendChild(viewer);
-
-            viewer.addEventListener('load', () => {
-                estado.style.display = 'none';
-                panel.style.display = 'none'; // Oculta el panel HTML y deja visible el botón nativo del visor
-            });
-
-            viewer.addEventListener('error', () => {
-                estado.textContent = "No se pudo cargar el archivo 3D. Verifica el enlace.";
-            });
-
+            if (isIOS) {
+                // Nota: En iOS idealmente se usa .usdz, pero si usas el visor nativo de enlace directo:
+                container.innerHTML = `
+                    <a href="${modelGlbUrl}" rel="ar" class="btn-ar">
+                        <img src="https://developer.apple.com/augmented-reality/quick-look/images/ar-iconગર.svg" width="20" style="vertical-align:middle; margin-right:8px;" onerror="this.style.display='none'">
+                        Ver en Realidad Aumentada
+                    </a>
+                `;
+            } else {
+                // Para Android u otros, usamos un enlace directo con visor web o descarga
+                container.innerHTML = `
+                    <a href="${modelGlbUrl}" class="btn-ar">
+                        Ver Modelo 3D
+                    </a>
+                `;
+            }
         } else {
-            estado.textContent = "Error: Falta el parámetro del modelo en el QR.";
+            document.getElementById('content').innerHTML = "<h3>Error: Enlace incompleto en el código QR.</h3>";
         }
     </script>
 
