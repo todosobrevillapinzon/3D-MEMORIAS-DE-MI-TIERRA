@@ -25,16 +25,17 @@
     </model-viewer>
  
     <script>
-        // Lee el número o nombre del modelo que viene en el enlace (ejemplo: ?m=1.glb)
         const urlParams = new URLSearchParams(window.location.search);
         let modelo = urlParams.get('m');
         
-        if (modelo) {
-            document.getElementById('visor').setAttribute('src', modelo);
-        } else {
-            // Modelo por defecto si entran sin especificar ninguno
-            document.getElementById('visor').setAttribute('src', '1-la-serpiente-del-nacimiento-optimized.glb');
+        if (!modelo) {
+            modelo = '1-la-serpiente-del-nacimiento-optimized.glb';
         }
+
+        const visor = document.getElementById('visor');
+        // Asignamos tanto el src normal como el ios-src indispensable para Safari
+        visor.setAttribute('src', modelo);
+        visor.setAttribute('ios-src', modelo);
     </script>
 </body>
 </html>
