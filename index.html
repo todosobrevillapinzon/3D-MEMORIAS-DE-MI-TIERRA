@@ -25,8 +25,6 @@
         }
         h2 { margin-bottom: 10px; font-size: 22px; }
         p { color: #aaa; font-size: 14px; margin-bottom: 25px; }
-        
-        /* Botón oficial optimizado para iOS y Android */
         .btn-ar {
             display: inline-block;
             background-color: #28a745;
@@ -47,37 +45,32 @@
 
     <div class="card" id="content">
         <h2>Memorias de mi Tierra</h2>
-        <p>Escanea listo para proyectar en tu espacio real.</p>
-        <div id="enlace-container">
-            <a id="ar-link" href="#" class="btn-ar">Abrir Cámara en AR</a>
-        </div>
+        <p>Toca el botón para proyectar el modelo en tu espacio real.</p>
+        <div id="enlace-container"></div>
     </div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        const modelo = urlParams.get('m');
+        const modelo = urlParams.get('m'); // Ejemplo: ?m=la-serpiente
         const container = document.getElementById('enlace-container');
 
         if (modelo) {
-            // URL base de tus archivos .glb en GitHub Pages
-            const modelGlbUrl = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelo}`;
-
-            // Detectar si estamos en un dispositivo iOS (iPhone / iPad)
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
             if (isIOS) {
-                // Nota: En iOS idealmente se usa .usdz, pero si usas el visor nativo de enlace directo:
+                // En iOS forzamos la extensión .usdz que es la única que abre la cámara sin bloquearse
+                const usdzUrl = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelo}.usdz`;
                 container.innerHTML = `
-                    <a href="${modelGlbUrl}" rel="ar" class="btn-ar">
-                        <img src="https://developer.apple.com/augmented-reality/quick-look/images/ar-iconગર.svg" width="20" style="vertical-align:middle; margin-right:8px;" onerror="this.style.display='none'">
+                    <a href="${usdzUrl}" rel="ar" class="btn-ar">
                         Ver en Realidad Aumentada
                     </a>
                 `;
             } else {
-                // Para Android u otros, usamos un enlace directo con visor web o descarga
+                // En Android usamos el archivo .glb original con el visor de Google
+                const glbUrl = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelo}.glb`;
                 container.innerHTML = `
-                    <a href="${modelGlbUrl}" class="btn-ar">
-                        Ver Modelo 3D
+                    <a href="https://s.sketchfab.com/assis/viewer?url=${encodeURIComponent(glbUrl)}" class="btn-ar">
+                        Ver en Realidad Aumentada
                     </a>
                 `;
             }
