@@ -1,88 +1,69 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Memorias de mi Tierra</title>
-    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
-    <style>
-        body, html {
-            margin: 0; padding: 0; width: 100%; height: 100%;
-            background: #111; color: #fff; font-family: sans-serif;
-            overflow: hidden;
-        }
-        model-viewer {
-            width: 100vw; height: 100vh; position: absolute; top: 0; left: 0;
-        }
-        .ui-box {
-            z-index: 10; position: absolute; top: 0; left: 0; right: 0;
-            padding: 20px; text-align: center; pointer-events: none;
-        }
-        .btn {
-            background: #28a745; color: white; padding: 16px 28px;
-            border-radius: 12px; text-decoration: none; font-size: 18px;
-            font-weight: bold; border: none; cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-        }
-    </style>
-</head>
-<body>
-
-    <div class="ui-box" id="ui">
-        <h2>Memorias de mi Tierra</h2>
-        <p id="msg">Cargando modelo 3D...</p>
-    </div>
-
-    <script>
+<script>
         const params = new URLSearchParams(window.location.search);
         let modelo = params.get('m');
 
         if (modelo) {
-            // Sanitizar el nombre para evitar 404 por tipografía
             modelo = modelo.toLowerCase().trim().replace(/\s+/g, '-');
             if (!modelo.endsWith('.glb')) {
                 modelo += '.glb';
             }
 
-            const nombreBase = modelo.replace(/\.glb$/i, '');
             const baseUrl = 'https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/';
             const modelUrl = baseUrl + modelo;
-            const usdzUrl = baseUrl + nombreBase + '.usdz'; // Para iPhone (Quick Look), cuando existan
 
-            const viewer = document.createElement('model-viewer');
-            viewer.setAttribute('src', modelUrl);
-            viewer.setAttribute('ios-src', usdzUrl);
-            viewer.setAttribute('ar', '');
-            viewer.setAttribute('ar-modes', 'scene-viewer webxr quick-look');
-            viewer.setAttribute('ar-placement', 'floor');
-            viewer.setAttribute('camera-controls', '');       // <- habilita arrastrar libremente para orbitar
-            viewer.setAttribute('touch-action', 'pan-y');
-            viewer.setAttribute('auto-rotate', '');
-            viewer.setAttribute('environment-image', 'neutral'); // <- arregla el fondo feo/morado en la vista normal
-            viewer.setAttribute('shadow-intensity', '1');
-            viewer.setAttribute('camera-orbit', '0deg 75deg 105%'); // <- vista inicial de frente, no desde arriba
+            // Detectar si el usuario está en un iPhone o iPad
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
-            const arBtn = document.createElement('button');
-            arBtn.slot = 'ar-button';
-            arBtn.className = 'btn';
-            arBtn.style.pointerEvents = 'auto';
-            arBtn.textContent = 'Ver en Realidad Aumentada';
-            viewer.appendChild(arBtn);
-
-            document.body.appendChild(viewer);
-
-            viewer.addEventListener('load', () => {
+            if (isIOS) {
+                // SOLUCIÓN PARA SAFARI/iOS: Ocultamos el visor pesado y creamos un botón 
+                // que abre directamente el archivo o activa el protocolo nativo sin bloqueos.
                 document.getElementById('ui').style.display = 'none';
-            });
+                
+                const container = document.createElement('div');
+                container.style.cssText = "position:absolute; top:0; left:0; width:100vw; height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; background:#111; z-index:20; padding:20px; box-sizing:border-box;";
+                
+                container.innerHTML = `
+                    <h2 style="margin-bottom:10px;">Memorias de mi Tierra</h2>
+                    <p style="color:#aaa; margin-bottom:25px; font-size:14px;">Toca el botón para proyectar en tu espacio real</p>
+                    <a href="${modelUrl}" rel="ar" class="btn" style="display:inline-block; text-align:center;">
+                        Ver en Realidad Aumentada
+                    </a>
+                `;
+                document.body.appendChild(container);
 
-            viewer.addEventListener('error', () => {
-                document.getElementById('msg').innerHTML = "Archivo no encontrado.<br><small>Verifica que '" + modelo + "' esté subido al repositorio.</small>";
-            });
+            } else {
+                // PARA ANDROID: Mantenemos intacto el model-viewer de Google que funciona perfecto
+                const viewer = document.createElement('model-viewer');
+                viewer.setAttribute('src', modelUrl);
+                viewer.setAttribute('ar', '');
+                viewer.setAttribute('ar-modes', 'scene-viewer webxr quick-look');
+                viewer.setAttribute('ar-placement', 'floor');
+                viewer.setAttribute('camera-controls', '');
+                viewer.setAttribute('touch-action', 'pan-y');
+                viewer.setAttribute('auto-rotate', '');
+                viewer.setAttribute('environment-image', 'neutral');
+                viewer.setAttribute('shadow-intensity', '1');
+                viewer.setAttribute('camera-orbit', '0deg 75deg 105%');
+
+                const arBtn = document.createElement('button');
+                arBtn.slot = 'ar-button';
+                arBtn.className = 'btn';
+                arBtn.style.pointerEvents = 'auto';
+                arBtn.textContent = 'Ver en Realidad Aumentada';
+                viewer.appendChild(arBtn);
+
+                document.body.appendChild(viewer);
+
+                viewer.addEventListener('load', () => {
+                    document.getElementById('ui').style.display = 'none';
+                });
+
+                viewer.addEventListener('error', () => {
+                    document.getElementById('msg').innerHTML = "Archivo no encontrado.<br><small>Verifica que '" + modelo + "' esté subido al repositorio.</small>";
+                });
+            }
 
         } else {
             document.getElementById('msg').textContent = "Escanee un código QR válido del libro.";
         }
     </script>
-
-</body>
-</html>
