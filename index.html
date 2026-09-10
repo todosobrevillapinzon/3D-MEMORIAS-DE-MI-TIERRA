@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Memorias de mi Tierra - AR</title>
-    <!-- Importar la librería oficial de Google para manejo de modelos y AR -->
     <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
     <style>
         body, html {
@@ -22,8 +21,24 @@
         }
         .container {
             padding: 20px;
+            z-index: 10;
         }
-        /* Estilo limpio para el visor que activa la cámara */
+        /* Botón manual para evitar el bloqueo del navegador */
+        .btn-ar {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        .btn-ar:active {
+            background-color: #218838;
+        }
         model-viewer {
             width: 100vw;
             height: 100vh;
@@ -36,40 +51,51 @@
 <body>
 
     <div class="container" id="mensaje">
-        <p>Abriendo la cámara...</p>
+        <h2>Memorias de mi Tierra</h2>
+        <p id="estado">Cargando modelo 3D...</p>
+        <!-- Botón que habilita la cámara de forma segura ante restricciones del navegador -->
+        <button class="btn-ar" id="btnAr" style="display: none;" onclick="abrirCamaraAR()">Ver en Realidad Aumentada</button>
     </div>
 
     <script>
-        // Leer el parámetro ?m= del QR (ej: ?m=la-serpiente.glb)
         const urlParams = new URLSearchParams(window.location.search);
         const modelo = urlParams.get('m');
+        let visorGlobal = null;
 
         if (modelo) {
-            // URL absoluta del archivo en tu repositorio de GitHub Pages
             const modelUrl = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelo}`;
 
-            // Crear el elemento model-viewer dinámicamente optimizado solo para AR
             const viewer = document.createElement('model-viewer');
             viewer.setAttribute('src', modelUrl);
-            viewer.setAttribute('ios-src', modelUrl); // Clave para que el iPhone abra la cámara nativa
+            viewer.setAttribute('ios-src', modelUrl);
             viewer.setAttribute('ar', '');
             viewer.setAttribute('ar-modes', 'quick-look webxr scene-viewer');
             viewer.setAttribute('camera-controls', '');
             
             document.body.appendChild(viewer);
+            visorGlobal = viewer;
 
-            // Intentar abrir la cámara automáticamente apenas cargue
             viewer.addEventListener('load', () => {
-                document.getElementById('mensaje').style.display = 'none';
-                try {
-                    viewer.activateAR();
-                } catch (e) {
-                    console.log("Activación manual requerida");
-                }
+                document.getElementById('estado').textContent = "¡Modelo listo!";
+                document.getElementById('btnAr').style.display = "inline-block";
+            });
+
+            viewer.addEventListener('error', () => {
+                document.getElementById('estado').textContent = "Error al cargar el archivo 3D.";
             });
 
         } else {
             document.getElementById('mensaje').innerHTML = "<h3>Error: No se indicó ningún modelo en el enlace.</h3>";
+        }
+
+        function abrirCamaraAR() {
+            if (visorGlobal) {
+                try {
+                    visorGlobal.activateAR();
+                } catch (e) {
+                    alert("Tu navegador bloqueó la cámara. Toca el botón nuevamente.");
+                }
+            }
         }
     </script>
 
