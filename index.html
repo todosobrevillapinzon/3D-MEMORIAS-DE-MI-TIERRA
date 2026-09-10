@@ -3,41 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Realidad Aumentada - Memorias de mi Tierra</title>
+    <title>3D - Memorias de mi Tierra</title>
+    <!-- Importar la librería model-viewer -->
     <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
     <style>
-        body, html { 
-            margin: 0; 
-            width: 100%; 
-            height: 100%; 
-            overflow: hidden; 
-            background: transparent !important; 
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
         }
-        model-viewer { 
-            width: 100%; 
-            height: 100%; 
-            background-color: transparent !important;
+        model-viewer {
+            width: 100%;
+            height: 100vh;
+        }
+        .error-message {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+            padding: 20px;
+            color: #333;
         }
     </style>
 </head>
-<body style="background: transparent !important;">
-    <model-viewer id="visor" ar ar-modes="webxr scene-viewer quick-look" camera-controls auto-rotate skybox-image="" shadow-intensity="1" alt="Modelo 3D interactivo">
-    </model-viewer>
- 
+<body>
+
+    <div id="viewer-container"></div>
+
     <script>
+        // Leer el parámetro ?m= del enlace (ej: ?m=1-la-serpiente...)
         const urlParams = new URLSearchParams(window.location.search);
-        let modelo = urlParams.get('m');
-        
-        if (!modelo) {
-            modelo = '1-la-serpiente-del-nacimiento-optimized.glb';
+        const modelName = urlParams.get('m');
+        const container = document.getElementById('viewer-container');
+
+        if (modelName) {
+            // Construir la URL absoluta del archivo .glb en GitHub Pages
+            const modelUrl = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelName}`;
+
+            // Inyectar el model-viewer optimizado para evitar pantallas blancas
+            container.innerHTML = `
+                <model-viewer 
+                    src="${modelUrl}" 
+                    ios-src="${modelUrl}" 
+                    alt="Modelo 3D de Memorias de mi Tierra" 
+                    auto-rotate 
+                    camera-controls 
+                    ar
+                    ar-modes="webxr scene-viewer quick-look"
+                    loading="eager"
+                    reveal="auto">
+                </model-viewer>
+            `;
+        } else {
+            // Mensaje por si entran a la página principal sin seleccionar ningún modelo
+            container.innerHTML = `
+                <div class="error-message">
+                    <h2>Memorias de mi Tierra - Visor 3D</h2>
+                    <p>Por favor, escanea un código QR del libro para visualizar el modelo correspondiente.</p>
+                </div>
+            `;
         }
-
-        // Construimos la URL absoluta exacta para que Safari (iOS Quick Look) no falle
-        const urlAbsoluta = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelo}`;
-
-        const visor = document.getElementById('visor');
-        visor.setAttribute('src', urlAbsoluta);
-        visor.setAttribute('ios-src', urlAbsoluta);
     </script>
+
 </body>
 </html>
