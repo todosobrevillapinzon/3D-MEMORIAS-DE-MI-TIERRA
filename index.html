@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Memorias de mi Tierra - AR</title>
+    <!-- Librería oficial de Google optimizada para AR nativa -->
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
     <style>
         body, html {
             margin: 0;
@@ -12,70 +14,82 @@
             height: 100%;
             background-color: #111;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
             font-family: Arial, sans-serif;
             color: white;
             text-align: center;
         }
-        .card {
-            padding: 30px;
-            max-width: 90%;
+        .container {
+            padding: 20px;
+            z-index: 10;
         }
-        h2 { margin-bottom: 10px; font-size: 22px; }
-        p { color: #aaa; font-size: 14px; margin-bottom: 25px; }
+        /* Botón integrado que llama al visor nativo del sistema */
         .btn-ar {
-            display: inline-block;
             background-color: #28a745;
             color: white;
-            text-decoration: none;
+            border: none;
             padding: 16px 30px;
             font-size: 18px;
             border-radius: 12px;
-            font-weight: bold;
+            cursor: pointer;
             box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            font-weight: bold;
         }
         .btn-ar:active {
             background-color: #218838;
+        }
+        model-viewer {
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: #111;
         }
     </style>
 </head>
 <body>
 
-    <div class="card" id="content">
+    <div class="container" id="mensaje">
         <h2>Memorias de mi Tierra</h2>
-        <p>Toca el botón para proyectar el modelo en tu espacio real.</p>
-        <div id="enlace-container"></div>
+        <p id="estado">Cargando modelo 3D...</p>
     </div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        const modelo = urlParams.get('m'); // Ejemplo: ?m=la-serpiente
-        const container = document.getElementById('enlace-container');
+        const modelo = urlParams.get('m'); // Ej: la-serpiente.glb
 
         if (modelo) {
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            const modelUrl = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelo}`;
 
-            if (isIOS) {
-                // En iOS forzamos la extensión .usdz que es la única que abre la cámara sin bloquearse
-                const usdzUrl = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelo}.usdz`;
-                container.innerHTML = `
-                    <a href="${usdzUrl}" rel="ar" class="btn-ar">
-                        Ver en Realidad Aumentada
-                    </a>
-                `;
-            } else {
-                // En Android usamos el archivo .glb original con el visor de Google
-                const glbUrl = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelo}.glb`;
-                container.innerHTML = `
-                    <a href="https://s.sketchfab.com/assis/viewer?url=${encodeURIComponent(glbUrl)}" class="btn-ar">
-                        Ver en Realidad Aumentada
-                    </a>
-                `;
-            }
+            // Crear el visor con los atributos específicos para iOS (Quick Look) y Android
+            const viewer = document.createElement('model-viewer');
+            viewer.setAttribute('src', modelUrl);
+            viewer.setAttribute('ar', '');
+            viewer.setAttribute('ar-modes', 'quick-look webxr scene-viewer');
+            viewer.setAttribute('camera-controls', '');
+            viewer.setAttribute('loading', 'eager');
+
+            // Crear el botón oficial de AR anclado al visor para evitar descargas
+            const arButton = document.createElement('button');
+            arButton.setAttribute('slot', 'ar-button');
+            arButton.className = 'btn-ar';
+            arButton.textContent = 'Ver en Realidad Aumentada';
+            viewer.appendChild(arButton);
+
+            document.body.appendChild(viewer);
+
+            viewer.addEventListener('load', () => {
+                document.getElementById('mensaje').style.display = 'none';
+            });
+
+            viewer.addEventListener('error', () => {
+                document.getElementById('estado').textContent = "Error: No se encontró el archivo .glb en el repositorio.";
+            });
+
         } else {
-            document.getElementById('content').innerHTML = "<h3>Error: Enlace incompleto en el código QR.</h3>";
+            document.getElementById('mensaje').innerHTML = "<h3>Error: Enlace incompleto en el código QR.</h3>";
         }
     </script>
 
