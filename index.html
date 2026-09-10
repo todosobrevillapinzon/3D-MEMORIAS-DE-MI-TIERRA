@@ -3,92 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Memorias de mi Tierra - 3D y AR</title>
-    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <title>Cámara AR - Memorias de mi Tierra</title>
     <style>
-        body, html {
+        body {
             margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #121212;
-            font-family: Arial, sans-serif;
-            overflow: hidden;
-        }
-        model-viewer {
-            width: 100vw;
             height: 100vh;
-        }
-        /* Botón AR elegante y flotante */
-        #ar-button {
-            background-color: #28a745;
-            color: white;
-            border-radius: 30px;
-            border: none;
-            padding: 14px 28px;
-            font-size: 16px;
-            font-weight: bold;
-            position: absolute;
-            bottom: 35px;
-            left: 50%;
-            transform: translateX(-50%);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            cursor: pointer;
-            z-index: 10;
-        }
-        #ar-button:active {
-            background-color: #218838;
-        }
-        .error-box {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            background: #000;
             color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             text-align: center;
             padding: 20px;
+        }
+        a {
+            background: #007aff;
+            color: white;
+            padding: 18px 32px;
+            border-radius: 14px;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,122,255,0.4);
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
 
-    <div id="container"></div>
+    <h2>Memorias de mi Tierra</h2>
+    <p>Toca el botón para activar el visor de la cámara:</p>
+
+    <div id="btn-container"></div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        let modelo = urlParams.get('m');
-        const container = document.getElementById('container');
+        const modelo = urlParams.get('m') || 'la-serpiente';
+        
+        // AQUÍ ESTÁ EL SECRETO: 
+        // Para iOS, el archivo DEBE ser obligatoriamente .usdz para que abra la cámara directamente.
+        // Si mantienes .glb en el iPhone, Safari siempre intentará descargarlo o se bloqueará.
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const container = document.getElementById('btn-container');
 
-        if (modelo) {
-            // Si en el QR olvidaste poner la extensión .glb, se la agregamos automáticamente
-            if (!modelo.endsWith('.glb')) {
-                modelo += '.glb';
-            }
-
-            const modelUrl = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelo}`;
-
-            container.innerHTML = `
-                <model-viewer 
-                    src="${modelUrl}" 
-                    alt="Modelo 3D de Memorias de mi Tierra" 
-                    ar 
-                    ar-modes="quick-look webxr scene-viewer" 
-                    camera-controls 
-                    auto-rotate 
-                    loading="eager">
-                    <button slot="ar-button" id="ar-button">
-                        Ver en Realidad Aumentada
-                    </button>
-                </model-viewer>
-            `;
+        if (isIOS) {
+            // Enlace directo nativo de Apple Quick Look
+            const urlUsdz = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelo}.usdz`;
+            container.innerHTML = `<a href="${urlUsdz}" rel="ar">Abrir Cámara AR</a>`;
         } else {
-            container.innerHTML = `
-                <div class="error-box">
-                    <h2>Memorias de mi Tierra</h2>
-                    <p>Por favor, escanea un código QR válido del libro.</p>
-                </div>
-            `;
+            // Enlace para Android usando el visor de Google
+            const urlGlb = `https://todosobrevillapinzon.github.io/3D-MEMORias-DE-MI-TIERRA/${modelo}.glb`;
+            container.innerHTML = `<a href="https://arvr.google.com/scene-viewer/1.0?file=${encodeURIComponent(urlGlb)}">Abrir Cámara AR</a>`;
         }
     </script>
+
 </body>
 </html>
