@@ -21,21 +21,20 @@
     </style>
 </head>
 <body style="background: transparent !important;">
-    <model-viewer id="visor" ar ar-modes="webxr scene-viewer quick-look" camera-controls auto-rotate shadow-intensity="1" alt="Modelo 3D interactivo">
+    <model-viewer id="visor" ar ar-modes="webxr scene-viewer quick-look" camera-controls auto-rotate skybox-image="" shadow-intensity="1" alt="Modelo 3D interactivo">
     </model-viewer>
-
+ 
     <script>
+        // Lee el número o nombre del modelo que viene en el enlace (ejemplo: ?m=1.glb)
         const urlParams = new URLSearchParams(window.location.search);
         let modelo = urlParams.get('m');
         
-        if (!modelo) {
-            modelo = '1-la-serpiente-del-nacimiento-optimized.glb';
+        if (modelo) {
+            document.getElementById('visor').setAttribute('src', modelo);
+        } else {
+            // Modelo por defecto si entran sin especificar ninguno
+            document.getElementById('visor').setAttribute('src', '1-la-serpiente-del-nacimiento-optimized.glb');
         }
-
-        const visor = document.getElementById('visor');
-        visor.setAttribute('src', modelo);
-        // Configura el enlace optimizado para iOS Quick Look
-        visor.setAttribute('ios-src', modelo);
     </script>
 </body>
 </html>
