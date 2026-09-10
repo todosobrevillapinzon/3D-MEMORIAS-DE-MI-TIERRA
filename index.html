@@ -7,43 +7,18 @@
     <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
     <style>
         body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            background: #111;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #fff;
-            font-family: sans-serif;
-            text-align: center;
-            overflow: hidden;
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background: #111; display: flex; justify-content: center;
+            align-items: center; color: #fff; font-family: sans-serif; text-align: center;
         }
         .btn {
-            background: #28a745;
-            color: white;
-            padding: 16px 28px;
-            border-radius: 12px;
-            text-decoration: none;
-            font-size: 18px;
-            font-weight: bold;
-            border: none;
-            cursor: pointer;
+            background: #28a745; color: white; padding: 16px 28px;
+            border-radius: 12px; text-decoration: none; font-size: 18px;
+            font-weight: bold; border: none; cursor: pointer;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
-        model-viewer {
-            width: 100vw;
-            height: 100vh;
-            position: absolute;
-            top: 0;
-            left: 0;
-        }
-        .ui-box {
-            z-index: 10;
-            position: absolute;
-            padding: 20px;
-        }
+        model-viewer { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; }
+        .ui-box { z-index: 10; position: absolute; padding: 20px; }
     </style>
 </head>
 <body>
@@ -58,11 +33,12 @@
         let modelo = params.get('m');
 
         if (modelo) {
+            // Forzar todo a minúsculas y quitar espacios para evitar errores 404 por tipografía
+            modelo = modelo.toLowerCase().trim().replace(/\s+/g, '-');
             if (!modelo.endsWith('.glb')) {
                 modelo += '.glb';
             }
 
-            // Ruta oficial y limpia de tu GitHub Pages
             const modelUrl = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelo}`;
 
             const viewer = document.createElement('model-viewer');
@@ -85,11 +61,11 @@
             });
 
             viewer.addEventListener('error', () => {
-                document.getElementById('msg').textContent = "Error 404: Revisa que el archivo '" + modelo + "' exista en tu repositorio.";
+                document.getElementById('msg').innerHTML = "Archivo no encontrado.<br><small>Verifica que '" + modelo + "' esté subido al repositorio.</small>";
             });
 
         } else {
-            document.getElementById('msg').textContent = "Falta el parámetro ?m= en el código QR del libro.";
+            document.getElementById('msg').textContent = "Escanee un código QR válido del libro.";
         }
     </script>
 
