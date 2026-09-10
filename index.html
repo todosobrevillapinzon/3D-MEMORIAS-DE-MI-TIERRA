@@ -29,7 +29,7 @@
         .btn-secundario {
             background: #333; color: #ccc; padding: 12px 24px;
             border-radius: 12px; text-decoration: none; font-size: 14px;
-            border: 1px solid #55s; cursor: pointer; display: inline-block; margin-top: 10px;
+            border: 1px solid #444; cursor: pointer; display: inline-block; margin-top: 10px;
         }
         p { color: #aaa; max-width: 320px; font-size: 14px; }
     </style>
@@ -38,7 +38,7 @@
 
     <div class="ui-box" id="ui">
         <h2>Memorias de mi Tierra</h2>
-        <p id="msg">Preparando visualización 3D...</p>
+        <p id="msg">Verificando archivo en el servidor...</p>
     </div>
 
     <script>
@@ -46,22 +46,29 @@
         let modelo = params.get('m');
 
         if (modelo) {
-            modelo = modelo.toLowerCase().trim().replace(/\.(glb|usdz)$/i, '');
+            // Limpieza estricta del nombre para evitar desajustes de 404
+            modelo = modelo.toLowerCase().trim().replace(/\s+/g, '-');
+            modelo = modelo.replace(/\.(glb|usdz)$/i, '');
 
-            const modelUrl = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelo}.glb`;
-            const usdzUrl = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelo}.usdz`;
+            const baseUrl = 'https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/';
+            const modelUrl = baseUrl + modelo + '.glb';
+            const usdzUrl = baseUrl + modelo + '.usdz';
 
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
             if (isIOS) {
-                // iOS abre su visor nativo con el archivo USDZ
-                document.getElementById('ui').innerHTML = `
+                // En iOS usamos la etiqueta nativa apuntando al .usdz
+                const uiBox = document.getElementById('ui');
+                uiBox.innerHTML = `
                     <h2>Memorias de mi Tierra</h2>
                     <p>Visualiza el elemento histórico en tu espacio real.</p>
                     <a href="${usdzUrl}" rel="ar" class="btn">Abrir Cámara AR</a>
+                    <br>
+                    <a href="${modelUrl}" class="btn-secundario">Ver en Pantalla 3D</a>
                 `;
+                uiBox.style.pointerEvents = 'auto';
             } else {
-                // ANDROID Y OTROS: Creamos la interfaz con doble opción por si el celular no tiene ARCore
+                // En Android y otros navegadores
                 const uiBox = document.getElementById('ui');
                 uiBox.innerHTML = `
                     <h2>Memorias de mi Tierra</h2>
@@ -91,10 +98,14 @@
                 viewer.addEventListener('load', () => {
                     document.getElementById('ui').style.display = 'none';
                 });
+
+                viewer.addEventListener('error', () => {
+                    document.getElementById('msg').innerHTML = "<span style='color:#ff6b6b;'>Error 404: El archivo <b>'" + modelo + ".glb'</b> no se encuentra en el repositorio de GitHub.</span>";
+                });
             }
 
         } else {
-            document.getElementById('msg').textContent = "Falta el parámetro ?m= en el código QR.";
+            document.getElementById('msg').textContent = "Falta el parámetro ?m= en el código QR del libro.";
         }
     </script>
 
