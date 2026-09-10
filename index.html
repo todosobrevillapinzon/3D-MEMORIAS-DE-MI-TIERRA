@@ -2,150 +2,151 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Memorias de mi Tierra - Visor 3D/AR/VR</title>
-    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>AR - Memorias de mi Tierra</title>
     <style>
-        body, html { margin: 0; width: 100%; height: 100%; overflow: hidden; font-family: sans-serif; }
-        #cargando {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #111; color: #eee; display: flex; align-items: center;
-            justify-content: center; z-index: 20;
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
-        #banner {
-            position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.7); color: #fff; padding: 8px 16px;
-            border-radius: 20px; font-size: 13px; z-index: 15; text-align: center;
-            max-width: 85%; display: none;
+        /* Estilo de la pantalla de carga */
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #111;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Botón para reintentar si falla el lanzamiento automático */
+        #ar-button {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 15px 30px;
+            font-size: 18px;
+            background-color: #007aff;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        #ar-button:active {
+            background-color: #005bb5;
         }
     </style>
+
+    <!-- Importar la librería model-viewer que soporta AR nativo -->
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 </head>
 <body>
-    <div id="cargando">Cargando modelo 3D...</div>
-    <div id="banner"></div>
 
-    <a-scene
-        vr-mode-ui="enabled: true"
-        loading-screen="enabled: false"
-        webxr="optionalFeatures: hit-test, local-floor, dom-overlay;"
-        renderer="colorManagement: true; physicallyCorrectLights: true">
+    <!-- Pantalla de carga visual -->
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <p>Preparando Realidad Aumentada...</p>
+        <p style="font-size: 12px; color: #888;">(Si usas iPhone, abrirá la cámara)</p>
+    </div>
 
-        <a-assets timeout="30000">
-            <a-asset-item id="modelo-glb" src=""></a-asset-item>
-        </a-assets>
+    <!-- Botón de respaldo por si el navegador bloquea el inicio automático -->
+    <button id="ar-button" onclick="activarAR()">Tocar para ver en Realidad Aumentada</button>
 
-        <!-- Fondo solo para el modo "vista normal / VR". Se oculta al entrar en AR -->
-        <a-sky id="cielo" color="#1a1a2e"></a-sky>
-
-        <a-light type="ambient" color="#ffffff" intensity="0.9"></a-light>
-        <a-light type="directional" position="1 3 2" intensity="0.6"></a-light>
-        <a-entity light="type: hemisphere; color: #fff; groundColor: #444; intensity: 0.5"></a-entity>
-
-        <!-- Retícula que detecta mesa/piso en AR y coloca el modelo al tocar -->
-        <a-entity id="reticulo"
-            ar-hit-test="target:#modelo-3d; type: footprint;"
-            visible="false">
-        </a-entity>
-
-        <a-entity id="modelo-3d" gltf-model="#modelo-glb"
-            position="0 1.2 -2" visible="true"
-            animation__aparecer="property: scale; from: 0 0 0; to: 1 1 1; dur: 0; startEvents: mostrar-modelo">
-        </a-entity>
-
-        <a-entity id="rig" position="0 1.6 0">
-            <a-entity camera look-controls wasd-controls>
-                <a-entity cursor="fuse: false" position="0 0 -1"
-                    geometry="primitive: ring; radiusInner: 0.008; radiusOuter: 0.012"
-                    material="color: white; shader: flat"></a-entity>
-            </a-entity>
-        </a-entity>
-    </a-scene>
+    <!-- Elemento model-viewer oculto pero activo -->
+    <!-- IMPORTANTE: La ruta src debe apuntar a tu archivo .glb optimizado -->
+    <model-viewer 
+        id="ar-model"
+        src=""
+        ar
+        ar-modes="quick-look webxr"
+        camera-controls
+        style="width: 1px; height: 1px; opacity: 0; border: none;">
+    </model-viewer>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        const modelo = urlParams.get('m') || '1-la-serpiente-del-nacimiento-optimized.glb';
-        const urlAbsoluta = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelo}`;
+        // Nombre del modelo por defecto si no hay parámetro (cámbialo si quieres)
+        const modeloDefault = '1-la-serpiente-del-nacimiento-optimized.glb'; 
+        const modeloParam = urlParams.get('m');
+        const modeloNombre = modeloParam ? modeloParam : modeloDefault;
+        
+        // Construye la URL absoluta. Asegúrate de que esta ruta sea correcta.
+        const modelUrl = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modeloNombre}`;
 
-        const asset = document.getElementById('modelo-glb');
-        const entidad = document.getElementById('modelo-3d');
-        const cargando = document.getElementById('cargando');
-        const banner = document.getElementById('banner');
-        const escena = document.querySelector('a-scene');
-        const cielo = document.getElementById('cielo');
+        const modelViewer = document.getElementById('ar-model');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const arButton = document.getElementById('ar-button');
 
-        let factorEscalaBase = 1;
+        // Asignar la URL del modelo al visor
+        modelViewer.setAttribute('src', modelUrl);
 
-        asset.setAttribute('src', urlAbsoluta);
-
-        entidad.addEventListener('model-loaded', () => {
-            cargando.style.display = 'none';
-
-            // Calcular escala/centro reales del modelo (tus 75 GLB no comparten escala)
-            const mesh = entidad.getObject3D('mesh');
-            if (mesh) {
-                const box = new THREE.Box3().setFromObject(mesh);
-                const size = new THREE.Vector3();
-                box.getSize(size);
-                const maxDim = Math.max(size.x, size.y, size.z) || 1;
-                factorEscalaBase = 0.5 / maxDim; // ~50cm, tamaño razonable sobre una mesa
-                entidad.setAttribute('scale', `${factorEscalaBase} ${factorEscalaBase} ${factorEscalaBase}`);
-
-                const center = new THREE.Vector3();
-                box.getCenter(center);
-                entidad.object3D.position.x -= center.x * factorEscalaBase;
-                entidad.object3D.position.z -= center.z * factorEscalaBase;
-                // no restamos Y para que se apoye sobre su propia base
-            }
-        });
-
-        entidad.addEventListener('model-error', (e) => {
-            cargando.textContent = 'Error cargando el modelo: ' + modelo;
-            console.error(e.detail);
-        });
-
-        // Al entrar/salir de una sesión inmersiva, ajustar fondo y comportamiento
-        escena.addEventListener('enter-vr', () => {
-            const enAR = escena.is('ar-mode');
-            if (enAR) {
-                cielo.setAttribute('visible', false); // deja pasar la cámara real
-                entidad.setAttribute('visible', false); // se oculta hasta tocar sobre mesa/piso
-                document.getElementById('reticulo').setAttribute('visible', true);
-            }
-        });
-        escena.addEventListener('exit-vr', () => {
-            cielo.setAttribute('visible', true);
-            entidad.setAttribute('visible', true);
-            entidad.setAttribute('position', '0 1.2 -2');
-            entidad.setAttribute('scale', `${factorEscalaBase} ${factorEscalaBase} ${factorEscalaBase}`);
-        });
-
-        // Cuando el hit-test coloca el modelo, hacerlo visible
-        document.getElementById('reticulo').addEventListener('ar-hit-test-select', () => {
-            entidad.setAttribute('visible', true);
-        });
-
-        // Aviso según capacidades reales del navegador
-        async function detectarYAvisar() {
-            if (!navigator.xr) {
-                banner.textContent = 'Tu navegador no soporta AR/VR. Puedes rotar el modelo arrastrando con el dedo.';
-                banner.style.display = 'block';
-                return;
-            }
-            const [ar, vr] = await Promise.all([
-                navigator.xr.isSessionSupported('immersive-ar').catch(() => false),
-                navigator.xr.isSessionSupported('immersive-vr').catch(() => false)
-            ]);
-            if (ar) {
-                banner.textContent = 'Toca "Entrar en AR", apunta a una mesa o al piso y toca la pantalla para colocarlo ahí.';
-            } else if (vr) {
-                banner.textContent = 'Toca "Entrar en VR" para verlo con tu visor.';
+        function activarAR() {
+            // Forzar la activación del modo AR en el elemento model-viewer
+            const arProxy = modelViewer.activateAR();
+            if (arProxy) {
+                arProxy.catch((err) => {
+                    console.error("Error al activar AR:", err);
+                    // Si falla, ocultamos la carga y mostramos el botón manual
+                    loadingOverlay.style.display = 'none';
+                    arButton.style.display = 'block';
+                    alert("No se pudo iniciar la cámara automáticamente. Por favor, toca el botón.");
+                });
             } else {
-                banner.textContent = 'Tu navegador no soporta AR/VR. Puedes rotar el modelo arrastrando con el dedo.';
+                // Fallback si el navegador no soporta activarAR
+                loadingOverlay.style.display = 'none';
+                alert("Tu dispositivo no parece soportar Realidad Aumentada.");
             }
-            banner.style.display = 'block';
-            setTimeout(() => banner.style.display = 'none', 7000);
         }
-        detectarYAvisar();
+
+        // Intentar lanzar la RA automáticamente cuando el modelo esté listo
+        modelViewer.addEventListener('load', () => {
+            console.log("Modelo cargado. Intentando iniciar AR...");
+            
+            // Ocultar pantalla de carga
+            loadingOverlay.style.display = 'none';
+
+            // En iPhone/Safari, el lanzamiento automático funciona bien si el usuario escaneó un QR
+            // En Android/Chrome, el lanzamiento automático suele ser bloqueado por seguridad
+            
+            setTimeout(() => {
+                // Pequeña demora para asegurar que el navegador está listo
+                activarAR();
+            }, 500);
+        });
+
+        // Manejar errores de carga del modelo
+        modelViewer.addEventListener('error', (event) => {
+            console.error("Error en model-viewer:", event);
+            loadingOverlay.style.display = 'none';
+            alert("Error crítico: No se pudo cargar el modelo 3D. Revisa la consola.");
+        });
+
     </script>
 </body>
 </html>
