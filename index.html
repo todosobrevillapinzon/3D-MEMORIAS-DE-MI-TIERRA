@@ -4,35 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Memorias de mi Tierra</title>
-    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <!-- Forzamos una versión limpia del visor 3D para evitar caché -->
+    <script type="module" src="https://unpkg.com/@google/model-viewer@3.4.0/dist/model-viewer.min.js"></script>
     <style>
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
             background: #111; color: #fff; font-family: sans-serif;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            text-align: center; padding: 20px; box-sizing: border-box;
             overflow: hidden;
         }
         model-viewer {
             width: 100vw; height: 100vh; position: absolute; top: 0; left: 0;
         }
         .ui-box {
-            z-index: 10; position: relative; max-width: 400px;
+            z-index: 10; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            background: #111; text-align: center; padding: 20px; box-sizing: border-box;
         }
         .btn {
-            background: #28a745; color: white; padding: 16px 28px;
-            border-radius: 12px; text-decoration: none; font-size: 18px;
+            background: #28a745; color: white; padding: 18px 32px;
+            border-radius: 14px; text-decoration: none; font-size: 18px;
             font-weight: bold; border: none; cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            display: inline-block; margin-top: 15px;
+            box-shadow: 0 4px 15px rgba(40,167,69,0.4);
+            display: inline-block; margin-top: 20px;
         }
+        p { color: #aaa; max-width: 320px; font-size: 14px; }
     </style>
 </head>
 <body>
 
     <div class="ui-box" id="ui">
         <h2>Memorias de mi Tierra</h2>
-        <p id="msg">Cargando modelo 3D...</p>
+        <p id="msg">Preparando visualización 3D...</p>
     </div>
 
     <script>
@@ -44,28 +46,38 @@
 
             const modelUrl = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelo}.glb`;
 
+            // Creamos el visor nativo directamente
             const viewer = document.createElement('model-viewer');
             viewer.setAttribute('src', modelUrl);
             viewer.setAttribute('ar', '');
             viewer.setAttribute('ar-modes', 'scene-viewer webxr quick-look');
             viewer.setAttribute('camera-controls', '');
             viewer.setAttribute('auto-rotate', '');
+            viewer.setAttribute('shadow-intensity', '1');
 
+            // Creamos nuestro propio botón personalizado y limpio
             const arBtn = document.createElement('button');
-            arBtn.slot = 'ar-button';
             arBtn.className = 'btn';
-            arBtn.textContent = 'Ver en Realidad Aumentada';
-            viewer.appendChild(arBtn);
+            arBtn.textContent = 'Abrir en Realidad Aumentada';
+            
+            // Forzamos la acción de AR al hacer clic en nuestro botón
+            arBtn.addEventListener('click', () => {
+                if (viewer.canActivateAR) {
+                    viewer.activateAR();
+                } else {
+                    window.location.href = modelUrl;
+                }
+            });
+
+            const uiBox = document.getElementById('ui');
+            uiBox.innerHTML = `
+                <h2>Memorias de mi Tierra</h2>
+                <p>Visualiza el elemento histórico en tu espacio real.</p>
+            `;
+            uiBox.appendChild(arBtn);
+            uiBox.style.pointerEvents = 'auto';
 
             document.body.appendChild(viewer);
-
-            viewer.addEventListener('load', () => {
-                document.getElementById('ui').style.display = 'none';
-            });
-
-            viewer.addEventListener('error', () => {
-                document.getElementById('msg').innerHTML = "Error: El archivo '" + modelo + ".glb' no se encuentra en GitHub.";
-            });
 
         } else {
             document.getElementById('msg').textContent = "Falta el parámetro ?m= en el código QR.";
