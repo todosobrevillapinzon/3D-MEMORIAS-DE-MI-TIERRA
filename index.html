@@ -9,31 +9,28 @@
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
             background: #111; color: #fff; font-family: sans-serif;
-            overflow: hidden;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center; padding: 20px; box-sizing: border-box;
         }
         model-viewer {
             width: 100vw; height: 100vh; position: absolute; top: 0; left: 0;
         }
         .ui-box {
-            z-index: 10; position: absolute; top: 20px; left: 0; right: 0;
-            text-align: center; pointer-events: none;
+            z-index: 10; position: relative; max-width: 450px;
         }
-        .ui-box h2 { margin: 5px 0; font-size: 18px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
-        .ui-box p { margin: 0; font-size: 13px; color: #ccc; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
-        
-        /* Botón de Realidad Aumentada integrado de forma limpia */
-        [slot="ar-button"] {
-            background: #28a745; color: white; padding: 14px 24px;
-            border-radius: 12px; border: none; font-weight: bold; font-size: 16px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5); cursor: pointer;
-            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
-            z-index: 10;
+        .btn {
+            background: #28a745; color: white; padding: 16px 28px;
+            border-radius: 12px; text-decoration: none; font-size: 18px;
+            font-weight: bold; border: none; cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            display: inline-block; margin-top: 15px;
         }
+        .error-box { background: #220000; border: 1px solid #ff4444; padding: 15px; border-radius: 8px; margin-top: 15px; font-size: 13px; color: #ff8888; word-break: break-all; }
     </style>
 </head>
 <body>
 
-    <div class="ui-box">
+    <div class="ui-box" id="ui">
         <h2>Memorias de mi Tierra</h2>
         <p id="msg">Cargando modelo 3D...</p>
     </div>
@@ -43,38 +40,44 @@
         let modelo = params.get('m');
 
         if (modelo) {
-            modelo = modelo.toLowerCase().trim().replace(/\.(glb|usdz)$/i, '');
+            // Decodificamos por si el QR trae caracteres especiales
+            modelo = decodeURIComponent(modelo).trim().replace(/\.(glb|usdz)$/i, '');
+
             const modelUrl = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelo}.glb`;
 
-            // Creamos el visor oficial de Google de forma limpia y directa
             const viewer = document.createElement('model-viewer');
             viewer.setAttribute('src', modelUrl);
             viewer.setAttribute('ar', '');
             viewer.setAttribute('ar-modes', 'scene-viewer quick-look webxr');
             viewer.setAttribute('camera-controls', '');
             viewer.setAttribute('auto-rotate', '');
-            viewer.setAttribute('shadow-intensity', '1');
-            viewer.setAttribute('environment-image', 'neutral');
 
-            // Botón nativo de AR
             const arBtn = document.createElement('button');
             arBtn.slot = 'ar-button';
+            arBtn.className = 'btn';
             arBtn.textContent = 'Ver en Realidad Aumentada';
             viewer.appendChild(arBtn);
 
             document.body.appendChild(viewer);
 
             viewer.addEventListener('load', () => {
-                const msg = document.getElementById('msg');
-                if (msg) msg.style.display = 'none';
+                document.getElementById('ui').style.display = 'none';
             });
 
             viewer.addEventListener('error', () => {
-                document.getElementById('msg').innerHTML = "<span style='color:#ff6b6b;'>Error: No se encontró el archivo <b>'" + modelo + ".glb'</b> en GitHub.</span>";
+                document.getElementById('ui').innerHTML = `
+                    <h2>Error de Carga</h2>
+                    <p>El servidor no encontró el archivo exacto en GitHub.</p>
+                    <div class="error-box">
+                        <b>Enlace intentado:</b><br>${modelUrl}
+                    </div>
+                    <br>
+                    <a href="${modelUrl}" class="btn" style="font-size:14px; padding:10px 20px;">Forzar descarga para probar</a>
+                `;
             });
 
         } else {
-            document.getElementById('msg').textContent = "Escanee un código QR válido del libro.";
+            document.getElementById('msg').textContent = "Falta el parámetro ?m= en el código QR.";
         }
     </script>
 
