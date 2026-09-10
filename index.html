@@ -32,10 +32,12 @@
             modelo = '1-la-serpiente-del-nacimiento-optimized.glb';
         }
 
+        // Construimos la URL absoluta exacta para que Safari (iOS Quick Look) no falle
+        const urlAbsoluta = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelo}`;
+
         const visor = document.getElementById('visor');
-        // Asignamos tanto el src normal como el ios-src indispensable para Safari
-        visor.setAttribute('src', modelo);
-        visor.setAttribute('ios-src', modelo);
+        visor.setAttribute('src', urlAbsoluta);
+        visor.setAttribute('ios-src', urlAbsoluta);
     </script>
 </body>
 </html>
