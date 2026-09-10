@@ -11,6 +11,7 @@
             background: #111; color: #fff; font-family: sans-serif;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             text-align: center; padding: 20px; box-sizing: border-box;
+            overflow: hidden;
         }
         model-viewer {
             width: 100vw; height: 100vh; position: absolute; top: 0; left: 0;
@@ -25,72 +26,49 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
             display: inline-block; margin-top: 15px;
         }
-        .debug { font-size: 11px; color: #ff6b6b; margin-top: 20px; word-break: break-all; }
     </style>
 </head>
 <body>
 
     <div class="ui-box" id="ui">
         <h2>Memorias de mi Tierra</h2>
-        <p id="msg">Analizando código QR...</p>
-        <div id="debug" class="debug"></div>
+        <p id="msg">Cargando modelo 3D...</p>
     </div>
 
     <script>
         const params = new URLSearchParams(window.location.search);
         let modelo = params.get('m');
-        const msg = document.getElementById('msg');
-        const debug = document.getElementById('debug');
 
         if (modelo) {
-            // Limpiar formato
             modelo = modelo.toLowerCase().trim().replace(/\.(glb|usdz)$/i, '');
 
-            // RUTA ABSOLUTA OFICIAL (Asegúrate de que tus archivos .glb estén exactamente aquí)
             const modelUrl = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelo}.glb`;
-            const usdzUrl = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelo}.usdz`;
 
-            debug.textContent = "Buscando: " + modelUrl;
+            const viewer = document.createElement('model-viewer');
+            viewer.setAttribute('src', modelUrl);
+            viewer.setAttribute('ar', '');
+            viewer.setAttribute('ar-modes', 'scene-viewer webxr quick-look');
+            viewer.setAttribute('camera-controls', '');
+            viewer.setAttribute('auto-rotate', '');
 
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            const arBtn = document.createElement('button');
+            arBtn.slot = 'ar-button';
+            arBtn.className = 'btn';
+            arBtn.textContent = 'Ver en Realidad Aumentada';
+            viewer.appendChild(arBtn);
 
-            if (isIOS) {
-                document.getElementById('ui').innerHTML = `
-                    <h2>Memorias de mi Tierra</h2>
-                    <p style="color:#aaa; font-size:14px; margin: 15px 0;">Toca el botón para abrir la cámara en tu iPhone</p>
-                    <a href="${usdzUrl}" rel="ar" class="btn">Abrir Cámara AR</a>
-                    <br><br>
-                    <a href="${modelUrl}" style="color:#6cb4ee; font-size:12px;">Ver modelo 3D estándar</a>
-                `;
-            } else {
-                // Crear el visor para Android de manera segura
-                const viewer = document.createElement('model-viewer');
-                viewer.setAttribute('src', modelUrl);
-                viewer.setAttribute('ar', '');
-                viewer.setAttribute('ar-modes', 'scene-viewer webxr quick-look');
-                viewer.setAttribute('camera-controls', '');
-                viewer.setAttribute('auto-rotate', '');
+            document.body.appendChild(viewer);
 
-                const arBtn = document.createElement('button');
-                arBtn.slot = 'ar-button';
-                arBtn.className = 'btn';
-                arBtn.textContent = 'Ver en Realidad Aumentada';
-                viewer.appendChild(arBtn);
+            viewer.addEventListener('load', () => {
+                document.getElementById('ui').style.display = 'none';
+            });
 
-                document.body.appendChild(viewer);
-
-                viewer.addEventListener('load', () => {
-                    document.getElementById('ui').style.display = 'none';
-                });
-
-                viewer.addEventListener('error', () => {
-                    msg.textContent = "Error: El archivo '" + modelo + ".glb' no se encuentra en GitHub.";
-                });
-            }
+            viewer.addEventListener('error', () => {
+                document.getElementById('msg').innerHTML = "Error: El archivo '" + modelo + ".glb' no se encuentra en GitHub.";
+            });
 
         } else {
-            msg.textContent = "Falta el parámetro ?m= en el código QR.";
-            debug.textContent = "Ejemplo correcto de enlace QR: tu-pagina.github.io/?m=nombre-modelo";
+            document.getElementById('msg').textContent = "Falta el parámetro ?m= en el código QR.";
         }
     </script>
 
