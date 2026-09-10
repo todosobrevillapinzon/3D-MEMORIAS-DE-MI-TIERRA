@@ -8,8 +8,15 @@
     <style>
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
-            background: #111; display: flex; justify-content: center;
-            align-items: center; color: #fff; font-family: sans-serif; text-align: center;
+            background: #111; color: #fff; font-family: sans-serif;
+            overflow: hidden;
+        }
+        model-viewer {
+            width: 100vw; height: 100vh; position: absolute; top: 0; left: 0;
+        }
+        .ui-box {
+            z-index: 10; position: absolute; top: 0; left: 0; right: 0;
+            padding: 20px; text-align: center; pointer-events: none;
         }
         .btn {
             background: #28a745; color: white; padding: 16px 28px;
@@ -17,8 +24,6 @@
             font-weight: bold; border: none; cursor: pointer;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
-        model-viewer { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; }
-        .ui-box { z-index: 10; position: absolute; padding: 20px; }
     </style>
 </head>
 <body>
@@ -33,24 +38,34 @@
         let modelo = params.get('m');
 
         if (modelo) {
-            // Forzar todo a minúsculas y quitar espacios para evitar errores 404 por tipografía
+            // Sanitizar el nombre para evitar 404 por tipografía
             modelo = modelo.toLowerCase().trim().replace(/\s+/g, '-');
             if (!modelo.endsWith('.glb')) {
                 modelo += '.glb';
             }
 
-            const modelUrl = `https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/${modelo}`;
+            const nombreBase = modelo.replace(/\.glb$/i, '');
+            const baseUrl = 'https://todosobrevillapinzon.github.io/3D-MEMORIAS-DE-MI-TIERRA/';
+            const modelUrl = baseUrl + modelo;
+            const usdzUrl = baseUrl + nombreBase + '.usdz'; // Para iPhone (Quick Look), cuando existan
 
             const viewer = document.createElement('model-viewer');
             viewer.setAttribute('src', modelUrl);
+            viewer.setAttribute('ios-src', usdzUrl);
             viewer.setAttribute('ar', '');
-            viewer.setAttribute('ar-modes', 'quick-look webxr scene-viewer');
-            viewer.setAttribute('camera-controls', '');
+            viewer.setAttribute('ar-modes', 'scene-viewer webxr quick-look');
+            viewer.setAttribute('ar-placement', 'floor');
+            viewer.setAttribute('camera-controls', '');       // <- habilita arrastrar libremente para orbitar
+            viewer.setAttribute('touch-action', 'pan-y');
             viewer.setAttribute('auto-rotate', '');
+            viewer.setAttribute('environment-image', 'neutral'); // <- arregla el fondo feo/morado en la vista normal
+            viewer.setAttribute('shadow-intensity', '1');
+            viewer.setAttribute('camera-orbit', '0deg 75deg 105%'); // <- vista inicial de frente, no desde arriba
 
             const arBtn = document.createElement('button');
             arBtn.slot = 'ar-button';
             arBtn.className = 'btn';
+            arBtn.style.pointerEvents = 'auto';
             arBtn.textContent = 'Ver en Realidad Aumentada';
             viewer.appendChild(arBtn);
 
