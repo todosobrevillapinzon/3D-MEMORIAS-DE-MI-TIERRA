@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D - Memorias de mi Tierra</title>
-    <!-- Importar la librería model-viewer -->
     <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
     <style>
         body, html {
@@ -13,14 +12,14 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background-color: #eeeeee;
+            background-color: #e0e0e0;
             font-family: Arial, sans-serif;
         }
         model-viewer {
             width: 100%;
             height: 100vh;
         }
-        .error-message {
+        .message-box {
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -37,32 +36,40 @@
     <div id="viewer-container"></div>
 
     <script>
-        // Leer el parámetro ?m= del enlace (ej: ?m=la-serpiente.glb)
         const urlParams = new URLSearchParams(window.location.search);
         const modelName = urlParams.get('m');
         const container = document.getElementById('viewer-container');
 
         if (modelName) {
-            // Usar ruta relativa limpia para que cargue directamente desde el repositorio
-            const modelUrl = modelName;
-
-            // Inyectar el model-viewer optimizado para carga web estable
+            // Inyectar el visor y un detector de errores integrado
             container.innerHTML = `
                 <model-viewer 
-                    src="${modelUrl}" 
-                    alt="Modelo 3D de Memorias de mi Tierra" 
+                    id="my-model"
+                    src="${modelName}" 
+                    alt="Modelo 3D" 
                     auto-rotate 
                     camera-controls 
-                    loading="eager"
-                    reveal="auto">
+                    loading="eager">
                 </model-viewer>
             `;
+
+            // Si el archivo falla en GitHub Pages, mostrará una alerta clara en lugar de pantalla blanca
+            const modelViewer = document.getElementById('my-model');
+            modelViewer.addEventListener('error', (event) => {
+                container.innerHTML = `
+                    <div class="message-box">
+                        <h3 style="color: #d9534f;">No se pudo cargar el archivo</h3>
+                        <p>El sistema no encuentra el archivo: <b>${modelName}</b></p>
+                        <p style="font-size: 14px; color: #666;">Verifica que el nombre en el QR no tenga espacios, tildes o mayúsculas distintas a como lo subiste a GitHub.</p>
+                    </div>
+                `;
+            });
+
         } else {
-            // Mensaje por si entran a la página principal sin seleccionar ningún modelo
             container.innerHTML = `
-                <div class="error-message">
+                <div class="message-box">
                     <h2>Memorias de mi Tierra - Visor 3D</h2>
-                    <p>Por favor, escanea un código QR del libro para visualizar el modelo correspondiente.</p>
+                    <p>Escanea un código QR del libro para ver el modelo.</p>
                 </div>
             `;
         }
